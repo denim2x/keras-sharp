@@ -34,6 +34,7 @@ namespace KerasSharp
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using KerasSharp.Utils;
 
 
     public static partial class Python

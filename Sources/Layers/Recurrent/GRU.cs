@@ -24,31 +24,60 @@
 //    SOFTWARE.
 //
 
-namespace KerasSharp
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    
-    using System.Runtime.Serialization;
-    using KerasSharp.Constraints;
-    using KerasSharp.Regularizers;
-    using KerasSharp.Initializers;
-    using Accord.Math;
-    using KerasSharp.Engine.Topology;
+namespace KerasSharp {
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
 
-    using static KerasSharp.Backends.Current;
+  using System.Runtime.Serialization;
+  using KerasSharp.Constraints;
+  using KerasSharp.Regularizers;
+  using KerasSharp.Initializers;
+  using Accord.Math;
+  using KerasSharp.Engine.Topology;
+  using KerasSharp.Activations;
 
+  using static KerasSharp.Backends.Current;
 
-    [DataContract]
-    public class GRU : Layer
+  /// <summary>
+  /// Gated Recurrent Unit - Cho et al. 2014.
+  /// 
+  /// Based on https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py#L1378
+  /// </summary>
+  [DataContract]
+  public class GRU : RNN {
+    public GRU(
+      IActivationFunction activation = null,
+      IActivationFunction recurrent_activation = null,
+      bool use_bias = true, 
+      IWeightInitializer kernel_initializer = null,
+      IWeightInitializer recurrent_initializer = null,
+      IWeightInitializer bias_initializer = null,
+      IWeightRegularizer kernel_regularizer = null,
+      IWeightRegularizer recurrent_regularizer = null,
+      IWeightRegularizer bias_regularizer = null,
+      IWeightRegularizer activity_regularizer = null,
+      IWeightConstraint kernel_constraint = null,
+      IWeightConstraint recurrent_constraint = null,
+      IWeightConstraint bias_constraint = null,
+      double dropout = 0.0,
+      double recurrent_dropout,
+      bool return_sequences = false,
+      bool return_state = false,
+      bool go_backwards = false,
+      bool stateful = false,
+      bool unroll = false) 
+      :base()
     {
-        public GRU()
-        {
-            // https://github.com/fchollet/keras/blob/f65a56fb65062c8d14d215c9f4b1015b97cc5bf3/keras/layers/recurrent.py#L630
-            throw new NotImplementedException();
-        }
+      if (activation == null) {
+        activation = new TanH();
+      }
+      if (recurrent_activation == null) {
+        recurrent_activation = new HardSigmoid();
+      }
+
     }
+  }
 }

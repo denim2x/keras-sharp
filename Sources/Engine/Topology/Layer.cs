@@ -40,6 +40,7 @@ namespace KerasSharp.Engine.Topology
 
     using static KerasSharp.Backends.Current;
     using static KerasSharp.Python;
+    using KerasSharp.Utils;
 
 
 
@@ -47,7 +48,7 @@ namespace KerasSharp.Engine.Topology
     /// Abstract base layer class.
     /// </summary>
     /// 
-    public abstract class Layer
+    public abstract class Layer: Cell
     {
         public virtual List<InputSpec> input_spec { get; set; }
         public List<Tensor> _trainable_weights;
@@ -62,6 +63,8 @@ namespace KerasSharp.Engine.Topology
         public bool _built;
 
         public bool supports_masking;
+
+        public abstract int?[] state_size { get; }
 
         public virtual bool trainable
         {
@@ -402,11 +405,6 @@ namespace KerasSharp.Engine.Topology
             }
         }
 
-        public List<Tensor> this[params Tensor[] x]
-        {
-            get { return this.Call(x.ToList()); }
-        }
-
         ///  <summary>
         ///    Wrapper around this.call(), for handling internal references.
         ///  </summary>
@@ -423,30 +421,7 @@ namespace KerasSharp.Engine.Topology
         ///  
         ///  <returns>Output of the layer"s `call` method.</returns>.
         ///  
-        public List<Tensor> Call(Tensor input, Tensor mask = null, bool? training = null)
-        {
-            if (mask == null)
-                return Call(new List<Tensor> { input }, null, training);
-            return Call(new List<Tensor> { input }, new List<Tensor> { mask }, training);
-        }
-
-        ///  <summary>
-        ///    Wrapper around this.call(), for handling internal references.
-        ///  </summary>
-        ///  
-        ///  <remarks>
-        ///  If a Keras tensor is passed:
-        ///  -We call this._add_inbound_node().
-        ///  -If necessary, we `build` the layer to match the _keras_shape of the input(s).
-        ///  -We update the _keras_shape of every input tensor with its new shape(obtained via this.compute_output_shape). This is done as part of _add_inbound_node().
-        ///  -We update the _keras_history of the output tensor(s) with the current layer. This is done as part of _add_inbound_node().
-        ///  </remarks>
-        ///  
-        ///  <param name="inputs">Can be a tensor or list/ tuple of tensors.</param>
-        ///  
-        ///  <returns>Output of the layer"s `call` method.</returns>.
-        ///  
-        public List<Tensor> Call(List<Tensor> inputs, List<Tensor> mask = null, bool? training = null)
+        public override List<Tensor> Call(List<Tensor> inputs, List<Tensor> mask = null, bool? training = null)
         {
             using (K.name_scope(this.name))
             {
