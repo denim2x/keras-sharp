@@ -24,8 +24,7 @@
 //    SOFTWARE.
 //
 
-namespace KerasSharp.Backends
-{
+namespace KerasSharp.Backends {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -35,9 +34,8 @@ namespace KerasSharp.Backends
     using KerasSharp.Losses;
     using KerasSharp.Models;
 
-    public interface IBackend : IDisposable
-    {
-        // TODO: Rename all methods to PascalCase
+    public interface IBackend : IDisposable {
+        // TODO: Rename all methods to camelCase
 
         Tensor sqrt(Tensor x);
 
@@ -57,6 +55,12 @@ namespace KerasSharp.Backends
 
         Tensor zeros(int?[] shape, DataType? dtype = null, string name = null);
 
+        Tensor zeros_like(Tensor inputs);
+
+        Tensor expand_dims(Tensor inputs);
+
+        Tensor tile(Tensor inputs, int?[] axis);
+
         float epsilon();
 
         DataType floatx();
@@ -65,7 +69,7 @@ namespace KerasSharp.Backends
         void clear_session();
 
         Tensor cast(Tensor x, DataType dataType);
-        
+
 
         Tensor dropout(object p, double retain_prob, object noise_shape, object seed);
 

@@ -31,7 +31,6 @@ namespace KerasSharp {
     using System.Text;
     using System.Threading.Tasks;
     using static System.Linq.Enumerable;
-    using Shapes = System.Collections.Generic.List<int?[]>;
 
     using System.Runtime.Serialization;
     using KerasSharp.Constraints;
@@ -43,6 +42,9 @@ namespace KerasSharp {
     using KerasSharp.Utils;
 
     using static KerasSharp.Backends.Current;
+    using Shapes = System.Collections.Generic.List<int?[]>;
+    using Tensors = System.Collections.Generic.List<Engine.Topology.Tensor>;
+    using InputSpecs = System.Collections.Generic.List<InputSpec>;
 
     /// <summary>
     /// Base class for recurrent layers.
@@ -60,7 +62,7 @@ namespace KerasSharp {
 
         public List<InputSpec> state_spec { get; protected set; } = null;
         public int num_states { get; protected set; }
-        public List<Tensor> _states { get; protected set; } = null;
+        public Tensors _states { get; protected set; } = null;
 
         public List<InputSpec> constants_spec = null;
         public int? _num_constants { get; protected set; } = null;
@@ -73,7 +75,7 @@ namespace KerasSharp {
             };
         }
 
-        public List<Tensor> states {
+        public Tensors states {
             get {
                 if (_states == null) {
                     num_states = cell.state_size.Length;
@@ -106,9 +108,9 @@ namespace KerasSharp {
             return output_shape;
         }
 
-        public override List<Tensor> compute_mask(List<Tensor> inputs, List<Tensor> mask) {
+        public override Tensors compute_mask(Tensors inputs, Tensors mask) {
             var _mask = mask[0];
-            var output_mask = new List<Tensor> { return_sequences ? _mask : null };
+            var output_mask = new Tensors { return_sequences ? _mask : null };
             if (return_state) {
                 output_mask.AddRange(Repeat<Tensor>(null, states.Count));
             }
@@ -140,9 +142,11 @@ namespace KerasSharp {
             var state_size = cell.state_size;
             if (state_spec == null) {
                 state_spec = state_size.Select((dim) => new InputSpec(shape: new[] { null, dim })).ToList();
-            } else if (state_spec.any(state_size, (spec, size) => spec.shape.get(-1) != size)) {
-                throw new InvalidOperationException($@"An `initial_state` was passed that is not compatible 
-with `cell.state_size`. Received `state_spec`=${state_spec}; however `cell.state_size` is ${cell.state_size}");
+            } else if (state_spec.any(state_size, (spec, size) => spec.shape.get(-1) != size, true)) {
+                throw new Errors.Value(Wrappers.square, 
+                    @"An `initial_state` was passed that is not compatible with `cell.state_size`;
+received `state_spec`={0}, whereas `cell.state_size`={1}.",
+                    state_spec, cell.state_size);
             }
 
             if (stateful) {
@@ -152,6 +156,76 @@ with `cell.state_size`. Received `state_spec`=${state_spec}; however `cell.state
             base.build(input_shape);
         }
 
+        public Tensors get_initial_state(Tensor inputs) {
+            var initial_state = K.expand_dims(K.sum(K.zeros_like(inputs), axis: new[] { 1, 2 }));
+            return cell.state_size.Select((dim) => K.tile(initial_state, new[] { 1, dim })).ToList();
+        }
 
+        public Tensors Call(Tensor inputs, Tensors initial_state = null, Tensors constants = null) {
+            if (initial_state == null && constants == null) {
+                return base.Call(inputs);
+            }
+
+            var _inputs = new Tensors();
+            var _specs = new InputSpecs();
+
+            if (initial_state != null) {
+                _inputs.AddRange(initial_state);
+                state_spec = initial_state.Select((state) => new InputSpec(shape: K.int_shape(state))).ToList();
+                _specs.AddRange(state_spec);
+            }
+
+            if (constants != null) {
+                _inputs.AddRange(constants);
+                constants_spec = constants.Select((constant) => new InputSpec(shape: K.int_shape(constant))).ToList();
+                _num_constants = constants.Count;
+                _specs.AddRange(constants_spec);
+            }
+
+            var input = _inputs.Prepend(inputs).ToList();
+            var input_spec = this.input_spec.Concat(_specs).ToList();
+            var _input_spec = this.input_spec;
+            this.input_spec = input_spec;
+            var output = base.Call(input);
+            this.input_spec = _input_spec;
+            return output;
+        }
+
+        public List<Tensor> Call(Tensor inputs, Tensor mask = null, bool? training = null, Tensors initial_state = null, Tensors constants = null) {
+            if (initial_state == null && stateful) {
+                initial_state = states;
+            } else {
+                initial_state = get_initial_state(inputs);
+            }
+
+            if (initial_state.Count != states.Count) {
+                throw new Errors.Value(Wrappers.square, 
+                    "Layer has {0} states but was passed {1} initial states.", 
+                    states.Count, initial_state.Count);
+            }
+
+            var input_shape = K.int_shape(inputs);
+            var timesteps = input_shape[1];
+            if (unroll && _timesteps.Contains(timesteps)) {
+                throw new Errors.Value(
+                    (@"Cannot unroll a RNN if the time dimension is undefined or equal to 1.",
+                    @"- If using a Sequential model, specify the time dimension by passing an `input_shape` or
+`batch_input_shape` argument to your first layer. If your first layer is an Embedding, you can also use the
+`input_length` argument.",
+                    @"- If using the functional API, specify the time dimension by passing a `shape` or `batch_shape`
+argument to your Input layer."
+                    ));
+            }
+
+            if (constants != null) {
+
+            }
+        }
+
+        internal readonly HashSet<int?> _timesteps = new HashSet<int?> { null, 1 };
+
+        public List<Tensor> Call(Tensors inputs, Tensors mask = null, bool? training = null, Tensors initial_state = null, Tensors constants = null) {
+            return Call(inputs[0], mask?[0], training, initial_state, constants);
+        }
     }
 }

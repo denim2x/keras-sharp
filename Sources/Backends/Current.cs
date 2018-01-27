@@ -24,8 +24,7 @@
 //    SOFTWARE.
 //
 
-namespace KerasSharp.Backends
-{
+namespace KerasSharp.Backends {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -35,8 +34,7 @@ namespace KerasSharp.Backends
     using System.Threading;
     using System.Reflection;
 
-    public static class Current
-    {
+    public static class Current {
         private static ThreadLocal<IBackend> backend;
 
         private static string[] assemblyNames =
@@ -48,32 +46,27 @@ namespace KerasSharp.Backends
 
         public static string Name = "KerasSharp.Backends.TensorFlowBackend";
 
-        public static IBackend K
-        {
-            get { return backend.Value; }
-            set { backend.Value = value; }
+        public static IBackend K {
+            get => backend.Value;
+            set => backend.Value = value;
         }
 
-        static Current()
-        {
+        static Current() {
             backend = new ThreadLocal<IBackend>(() => load(Name));
         }
 
-        public static void Switch<T>()
-        {
+        public static void Switch<T>() {
             Switch(typeof(T).FullName);
         }
 
-        public static void Switch(string backendName)
-        {
+        public static void Switch(string backendName) {
             Name = backendName;
             backend.Value = load(Name);
         }
 
 
 
-        private static IBackend load(string typeName)
-        {
+        private static IBackend load(string typeName) {
             Type type = find(typeName);
 
             IBackend obj = (IBackend)Activator.CreateInstance(type);
@@ -81,25 +74,19 @@ namespace KerasSharp.Backends
             return obj;
         }
 
-        private static Type find(string typeName)
-        {
-            foreach (string assemblyName in assemblyNames)
-            {
-                try
-                {
+        private static Type find(string typeName) {
+            foreach (string assemblyName in assemblyNames) {
+                try {
                     Assembly assembly = Assembly.Load(assemblyName);
 
                     var types = assembly.GetExportedTypes();
 
-                    foreach (var type in types)
-                    {
+                    foreach (var type in types) {
                         string currentTypeName = type.FullName;
                         if (currentTypeName == typeName)
                             return type;
                     }
-                }
-                catch
-                {
+                } catch {
                     // TODO: Remove this try-catch block by a proper check
                 }
             }
