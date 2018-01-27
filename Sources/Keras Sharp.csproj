@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net471</TargetFramework>
     <RootNamespace>KerasSharp</RootNamespace>
     <AssemblyName>KerasSharp</AssemblyName>
     <Platforms>x64</Platforms>

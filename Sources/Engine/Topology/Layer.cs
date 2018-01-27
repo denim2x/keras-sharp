@@ -24,8 +24,7 @@
 //    SOFTWARE.
 //
 
-namespace KerasSharp.Engine.Topology
-{
+namespace KerasSharp.Engine.Topology {
     using System;
     using Accord.Math;
     using KerasSharp.Constraints;
@@ -36,7 +35,7 @@ namespace KerasSharp.Engine.Topology
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    
+
 
     using static KerasSharp.Backends.Current;
     using static KerasSharp.Python;
@@ -48,8 +47,7 @@ namespace KerasSharp.Engine.Topology
     /// Abstract base layer class.
     /// </summary>
     /// 
-    public abstract class Layer: Cell
-    {
+    public abstract class Layer : Cell {
         public virtual List<InputSpec> input_spec { get; set; }
         public List<Tensor> _trainable_weights;
         public List<Tensor> _non_trainable_weights;
@@ -64,12 +62,9 @@ namespace KerasSharp.Engine.Topology
 
         public bool supports_masking;
 
-        public abstract int?[] state_size { get; }
-
-        public virtual bool trainable
-        {
-            get { return _trainable; }
-            set { _trainable = value; }
+        public virtual bool trainable {
+            get => _trainable;
+            set => _trainable = value;
         }
 
         public string name;
@@ -127,8 +122,7 @@ namespace KerasSharp.Engine.Topology
             Tensor output = null, Tensor input_mask = null, Tensor output_mask = null, List<Tensor> trainable_weights = null,
             List<Array> non_trainable_weights = null, Tensor weights = null, DataType? dtype = null,
             Dictionary<Tensor, IWeightConstraint> constraints = null, int?[] batch_input_shape = null,
-            int? batch_size = null, int? input_dim = null)
-        {
+            int? batch_size = null, int? input_dim = null) {
             if (input_shape == null && input_dim != null)
                 input_shape = new int?[] { input_dim };
 
@@ -167,8 +161,7 @@ namespace KerasSharp.Engine.Topology
             //              "input_dtype",  // legacy
             //              }
 
-            if (name == null)
-            {
+            if (name == null) {
                 string prefix = this.GetType().Name;
                 name = _to_snake_case(prefix) + "_" + K.get_uid(prefix);
             }
@@ -177,8 +170,7 @@ namespace KerasSharp.Engine.Topology
 
             this._trainable = trainable;
 
-            if (input_shape != null || batch_input_shape != null)
-            {
+            if (input_shape != null || batch_input_shape != null) {
                 // In this case we will later create an input layer
                 // to insert before the current layer
                 if (input_shape != null)
@@ -197,8 +189,7 @@ namespace KerasSharp.Engine.Topology
                 this._initial_weights = non_trainable_weights;
         }
 
-        private static string _to_snake_case(string s)
-        {
+        private static string _to_snake_case(string s) {
             var re = "(.)([A-Z][a-z0-9]+)";
             var intermediate = System.Text.RegularExpressions.Regex.Replace(s, re, "$1_$2");
 
@@ -208,62 +199,49 @@ namespace KerasSharp.Engine.Topology
 			 In Python, a class starting with "_" is insecure for creating scopes. 
 			 While this is not a concern in C#, it's implemented here for compatibility with Keras naming.
 			*/
-            if (insecure.StartsWith("_", StringComparison.InvariantCulture))
-            {
+            if (insecure.StartsWith("_", StringComparison.InvariantCulture)) {
                 return "private" + insecure;
-            }
-            else
-            {
+            } else {
                 return insecure;
             }
         }
 
-        public virtual List<Tensor> losses
-        {
+        public virtual List<Tensor> losses {
             get { return this._losses; }
         }
 
-        public virtual List<List<Tensor>> updates
-        {
+        public virtual List<List<Tensor>> updates {
             get { return this._updates; }
         }
 
-        public bool built
-        {
+        public bool built {
             get { return this._built; }
             set { this._built = value; }
         }
 
-        public virtual Dictionary<Tensor, IWeightConstraint> constraints
-        {
+        public virtual Dictionary<Tensor, IWeightConstraint> constraints {
             get { return this._constraints; }
             set { this._constraints = value; }
         }
 
-        public virtual List<Tensor> trainable_weights
-        {
-            get
-            {
+        public virtual List<Tensor> trainable_weights {
+            get {
                 if (trainable)
                     return this._trainable_weights;
                 return new List<Tensor> { };
             }
-            set
-            {
+            set {
                 this._trainable_weights = value;
             }
         }
 
-        public virtual List<Tensor> non_trainable_weights
-        {
-            get
-            {
+        public virtual List<Tensor> non_trainable_weights {
+            get {
                 if (!trainable)
                     return this._trainable_weights.Concat(this._non_trainable_weights).ToList();
                 return this._non_trainable_weights;
             }
-            set
-            {
+            set {
                 this._non_trainable_weights = value;
             }
         }
@@ -284,8 +262,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         public Tensor add_weight(string name, int[] shape, DataType? dtype = null,
             IWeightInitializer initializer = null, IWeightRegularizer regularizer = null,
-                   bool trainable = true, IWeightConstraint constraint = null)
-        {
+                   bool trainable = true, IWeightConstraint constraint = null) {
             Tensor weight = K.variable(tensor: initializer.Call(shape), dtype: dtype, name: name);
 
             if (regularizer != null)
@@ -313,8 +290,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <param name="inputs">The input tensor or list of input tensors.</param>
         /// 
-        public void assert_input_compatibility(List<Tensor> inputs)
-        {
+        public void assert_input_compatibility(List<Tensor> inputs) {
             // https://github.com/fchollet/keras/blob/2382f788b4f14646fa8b6b2d8d65f1fc138b35c4/keras/engine/topology.py#L393
 
             if (this.input_spec == null)
@@ -323,8 +299,7 @@ namespace KerasSharp.Engine.Topology
             if (inputs.Count != input_spec.Count)
                 throw new Exception("Layer {this.name} expects " + input_spec.Count + " inputs, but it received " + inputs.Count + " input tensors. Input received: " + inputs);
 
-            for (int input_index = 0; input_index < inputs.Count; input_index++)
-            {
+            for (int input_index = 0; input_index < inputs.Count; input_index++) {
                 Tensor x = inputs[input_index];
                 InputSpec spec = input_spec[input_index];
 
@@ -343,38 +318,31 @@ namespace KerasSharp.Engine.Topology
                 if (ndim != null && ndim > spec.max_ndim)
                     throw new Exception($"Input {input_index} is incompatible with layer {this.name}: expected max_ndim={ spec.max_ndim }, found ndim={K.ndim(x)}");
 
-                if (spec.min_ndim != null)
-                {
+                if (spec.min_ndim != null) {
                     ndim = K.ndim(x);
                     if (ndim != null && ndim < spec.min_ndim)
                         throw new Exception($"Input {input_index} is incompatible with layer {this.name}: expected min_ndim={spec.min_ndim}, found ndim={K.ndim(x)}");
                 }
 
                 // Check dtype.
-                if (spec.dtype != null)
-                {
+                if (spec.dtype != null) {
                     if (K.dtype(x) != spec.dtype)
                         throw new Exception($"Input {input_index} is incompatible with layer {this.name}: expected dtype={spec.dtype}, found dtype={K.dtype(x)}");
                 }
 
                 // Check specific shape axes.
                 // https://github.com/fchollet/keras/blob/2382f788b4f14646fa8b6b2d8d65f1fc138b35c4/keras/engine/topology.py#L467
-                if (spec.axes != null)
-                {
+                if (spec.axes != null) {
                     int?[] x_shape = K.int_shape(x);
 
-                    if (x_shape != null)
-                    {
-                        foreach (KeyValuePair<int, int> pair in spec.axes)
-                        {
+                    if (x_shape != null) {
+                        foreach (KeyValuePair<int, int> pair in spec.axes) {
                             int axis = pair.Key;
                             int? value = pair.Value;
 
-                            if (value != null)
-                            {
+                            if (value != null) {
                                 int? v = x_shape.Get(axis);
-                                if (v != value && v != null)
-                                {
+                                if (v != value && v != null) {
                                     throw new Exception($"Input {input_index} is incompatible with layer {this.name}: expected " +
                                         $"axis {axis} of input shape to have value {value} but got shape {x_shape}.");
                                 }
@@ -384,18 +352,14 @@ namespace KerasSharp.Engine.Topology
                 }
 
                 // Check shape.
-                if (spec.shape != null)
-                {
+                if (spec.shape != null) {
                     int?[] x_shape = K.int_shape(x);
 
-                    if (x_shape != null)
-                    {
-                        for (int i = 0; i < spec.shape.Length; i++)
-                        {
+                    if (x_shape != null) {
+                        for (int i = 0; i < spec.shape.Length; i++) {
                             int? spec_dim = spec.shape[i];
                             int? dim = x_shape[i];
-                            if (spec_dim != null && dim != null)
-                            {
+                            if (spec_dim != null && dim != null) {
                                 if (spec_dim != dim)
                                     throw new Exception($"Input {input_index} is incompatible with layer {this.name} expected shape={spec.shape}, found shape={x_shape}");
                             }
@@ -421,13 +385,10 @@ namespace KerasSharp.Engine.Topology
         ///  
         ///  <returns>Output of the layer"s `call` method.</returns>.
         ///  
-        public override List<Tensor> Call(List<Tensor> inputs, List<Tensor> mask = null, bool? training = null)
-        {
-            using (K.name_scope(this.name))
-            {
+        public override List<Tensor> Call(List<Tensor> inputs, List<Tensor> mask = null, bool? training = null) {
+            using (K.name_scope(this.name)) {
                 // Handle laying building (weight creating, input spec locking).
-                if (!this.built)
-                {
+                if (!this.built) {
                     // Raise exceptions in case the input != compatible
                     // with the input_spec specified in the layer constructor.
                     this.assert_input_compatibility(inputs);
@@ -435,8 +396,7 @@ namespace KerasSharp.Engine.Topology
 
                 // Collect input shapes to build layer.
                 var input_shapes = new List<int?[]>();
-                foreach (Tensor x_elem in inputs)
-                {
+                foreach (Tensor x_elem in inputs) {
                     if (x_elem._keras_shape != null)
                         input_shapes.Add(x_elem._keras_shape);
                     else if (x_elem.int_shape != null)
@@ -461,11 +421,9 @@ namespace KerasSharp.Engine.Topology
                 //var user_kwargs = copy.copy(kwargs);
 
                 List<Tensor> nextMask = null;
-                if (previous_mask.Any((Tensor x) => x != null))
-                {
+                if (previous_mask.Any((Tensor x) => x != null)) {
                     // The previous layer generated a mask.
-                    if (mask != null)
-                    {
+                    if (mask != null) {
                         // If mask is explicitly passed to __call__,
                         // we should override the default mask.
                         nextMask = previous_mask;
@@ -484,8 +442,7 @@ namespace KerasSharp.Engine.Topology
                 var output_ls = new List<Tensor>(output);
                 var inputs_ls = new List<Tensor>(inputs);
                 var output_ls_copy = new List<Tensor>();
-                foreach (Tensor x in output_ls)
-                {
+                foreach (Tensor x in output_ls) {
                     if (inputs_ls.Contains(x))
                         output_ls_copy.Add(K.identity(x));
                     else output_ls_copy.Add(x);
@@ -494,12 +451,9 @@ namespace KerasSharp.Engine.Topology
                 List<int?[]> output_shape;
 
                 // Infering the output shape is only relevant for Theano.
-                if (input_shape.All(s => s != null))
-                {
+                if (input_shape.All(s => s != null)) {
                     output_shape = this.compute_output_shape(input_shape);
-                }
-                else
-                {
+                } else {
                     output_shape = input_shape.Select(x => (int?[])null).ToList();
                 }
 
@@ -521,8 +475,7 @@ namespace KerasSharp.Engine.Topology
                                         );
 
                 // Apply activity regularizer if any:
-                if (this.activity_regularizer != null)
-                {
+                if (this.activity_regularizer != null) {
                     List<Tensor> regularization_losses = this.activity_regularizer.Call(output);
                     this.add_loss(regularization_losses, inputs);
                 }
@@ -540,8 +493,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>A tensor or list of tensors.</returns>
         /// 
-        protected virtual List<Tensor> InnerCall(List<Tensor> inputs, List<Tensor> mask = null, bool? training = null)
-        {
+        protected virtual List<Tensor> InnerCall(List<Tensor> inputs, List<Tensor> mask = null, bool? training = null) {
             if (inputs.Count != 1)
                 throw new InvalidCastException();
 
@@ -556,8 +508,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>A tensor or list of tensors.</returns>
         /// 
-        protected virtual Tensor InnerCall(Tensor inputs, Tensor mask = null, bool? training = null)
-        {
+        protected virtual Tensor InnerCall(Tensor inputs, Tensor mask = null, bool? training = null) {
             return inputs;
         }
 
@@ -574,23 +525,18 @@ namespace KerasSharp.Engine.Topology
         /// <param name="arguments">Dictionary of keyword arguments that were passed to the `call` method of the layer at the call that created the node.</param>
         /// 
         private void _add_inbound_node(List<Tensor> input_tensors, List<Tensor> output_tensors, List<Tensor> input_masks,
-            List<Tensor> output_masks, List<int?[]> input_shapes, List<int?[]> output_shapes, object arguments = null)
-        {
+            List<Tensor> output_masks, List<int?[]> input_shapes, List<int?[]> output_shapes, object arguments = null) {
             // Collect input tensor(s) coordinates.
             var inbound_layers = new List<Layer>();
             var node_indices = new List<int?>();
             var tensor_indices = new List<int?>();
-            foreach (Tensor x in input_tensors)
-            {
-                if (x._keras_history != null)
-                {
+            foreach (Tensor x in input_tensors) {
+                if (x._keras_history != null) {
                     var (inbound_layer, node_index, tensor_index) = x._keras_history.Value;
                     inbound_layers.Add(inbound_layer);
                     node_indices.Add(node_index);
                     tensor_indices.Add(tensor_index);
-                }
-                else
-                {
+                } else {
                     inbound_layers.Add(null);
                     node_indices.Add(null);
                     tensor_indices.Add(null);
@@ -610,8 +556,7 @@ namespace KerasSharp.Engine.Topology
                 arguments: arguments);
 
             // Update tensor history, _keras_shape and _uses_learning_phase.
-            for (int i = 0; i < output_tensors.Count; i++)
-            {
+            for (int i = 0; i < output_tensors.Count; i++) {
                 output_tensors[i]._keras_shape = output_shapes[i];
                 bool uses_lp = input_tensors.Any(x => x._uses_learning_phase);
                 uses_lp = this.uses_learning_phase || uses_lp;
@@ -632,8 +577,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>An input shape tuple.</returns>
         /// 
-        public List<int?[]> compute_output_shape(int?[] input_shape)
-        {
+        public List<int?[]> compute_output_shape(int?[] input_shape) {
             return compute_output_shape(new List<int?[]>() { input_shape });
         }
 
@@ -649,14 +593,12 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>An input shape tuple.</returns>
         /// 
-        public virtual List<int?[]> compute_output_shape(List<int?[]> input_shape)
-        {
+        public virtual List<int?[]> compute_output_shape(List<int?[]> input_shape) {
             //Trace.Warning("Class `{}.{}` defines `get_output_shape_for` but does not override `compute_output_shape`. If this is a Keras 1 layer, please implement `compute_output_shape` to support Keras 2.");
             return input_shape;
         }
 
-        public virtual void reset_states()
-        {
+        public virtual void reset_states() {
             throw new NotImplementedException();
         }
 
@@ -669,8 +611,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>null or a tensor (or list of tensors, one per output tensor of the layer).</returns>
         /// 
-        public virtual List<Tensor> compute_mask(Tensor inputs, Tensor mask = null)
-        {
+        public virtual List<Tensor> compute_mask(Tensor inputs, Tensor mask = null) {
             if (mask == null)
                 return compute_mask(new List<Tensor>() { inputs });
             return compute_mask(new List<Tensor>() { inputs }, new List<Tensor>() { mask });
@@ -685,12 +626,9 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>null or a tensor (or list of tensors, one per output tensor of the layer).</returns>
         /// 
-        public virtual List<Tensor> compute_mask(List<Tensor> inputs, List<Tensor> mask = null)
-        {
-            if (!this.supports_masking)
-            {
-                if (mask != null && !(mask.Count == 1 && mask[0] == null))
-                {
+        public virtual List<Tensor> compute_mask(List<Tensor> inputs, List<Tensor> mask = null) {
+            if (!this.supports_masking) {
+                if (mask != null && !(mask.Count == 1 && mask[0] == null)) {
                     foreach (Tensor m in mask)
                         throw new Exception("Layer {this.name} does not support masking, but was passed an input_mask: " + m);
                 }
@@ -711,8 +649,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <param name="input_shape">Keras tensor (future input to layer) or list/ tuple of Keras tensors to reference for weight shape computations.</param>
         /// 
-        protected virtual void build(List<int?[]> input_shape)
-        {
+        internal virtual void build(List<int?[]> input_shape) {
             this.built = true;
         }
 
@@ -745,8 +682,7 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>A shape array (or list of arrays if the layer has multiple inputs).</returns>
         /// 
-        public object get_input_shape_at(int node_index)
-        {
+        public object get_input_shape_at(int node_index) {
             return this.inbound_nodes[node_index].input_shapes;
         }
 
@@ -759,8 +695,7 @@ namespace KerasSharp.Engine.Topology
         ///   
         /// <returns>A shape array (or list of arrays if the layer has multiple inputs).</returns>
         /// 
-        public List<int?[]> get_output_shape_at(int node_index)
-        {
+        public List<int?[]> get_output_shape_at(int node_index) {
             return this.inbound_nodes[node_index].output_shapes;
         }
 
@@ -773,8 +708,7 @@ namespace KerasSharp.Engine.Topology
         ///   
         /// <returns>A tensor(or list of tensors if the layer has multiple inputs).</returns>
         /// 
-        public List<Tensor> get_input_at(int node_index)
-        {
+        public List<Tensor> get_input_at(int node_index) {
             return this.inbound_nodes[node_index].input_tensors;
         }
 
@@ -787,8 +721,7 @@ namespace KerasSharp.Engine.Topology
         ///   
         /// <returns>A tensor(or list of tensors if the layer has multiple outputs).</returns>
         /// 
-        public List<Tensor> get_output_at(int node_index)
-        {
+        public List<Tensor> get_output_at(int node_index) {
             return this.inbound_nodes[node_index].output_tensors;
         }
 
@@ -801,8 +734,7 @@ namespace KerasSharp.Engine.Topology
         ///   
         /// <returns>A mask tensor (or list of tensors if the layer has multiple inputs).</returns>
         /// 
-        public List<Tensor> get_input_mask_at(int node_index)
-        {
+        public List<Tensor> get_input_mask_at(int node_index) {
             return this.inbound_nodes[node_index].input_masks;
         }
         /// <summary>
@@ -814,8 +746,7 @@ namespace KerasSharp.Engine.Topology
         ///   
         /// <returns>A mask tensor (or list of tensors if the layer has multiple outputs).</returns>
         /// 
-        public List<Tensor> get_output_mask_at(int node_index)
-        {
+        public List<Tensor> get_output_mask_at(int node_index) {
             return this.inbound_nodes[node_index].output_masks;
         }
 
@@ -829,10 +760,8 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>Input tensor or list of input tensors.</returns>
         /// 
-        public List<Tensor> input
-        {
-            get
-            {
+        public List<Tensor> input {
+            get {
                 if (this.inbound_nodes.Count > 1)
                     throw new Exception($"Layer {this.name} has multiple inbound nodes, hence the notion of 'layer input' is ill-defined. Use `get_input_at(node_index)` instead.");
                 else if (this.inbound_nodes.Count == 0)
@@ -849,10 +778,8 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>Output tensor or list of output tensors.</returns>
         /// 
-        public List<Tensor> output
-        {
-            get
-            {
+        public List<Tensor> output {
+            get {
                 if (this.inbound_nodes.Count == 0)
                     throw new Exception($"Layer {this.name} has no inbound nodes.");
                 if (this.inbound_nodes.Count > 1)
@@ -872,10 +799,8 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>Input mask tensor (potentially null) or list of input mask tensors.</returns>
         /// 
-        public List<Tensor> input_mask
-        {
-            get
-            {
+        public List<Tensor> input_mask {
+            get {
                 if (this.inbound_nodes.Count != 1)
                     throw new Exception($"Layer {this.name} has multiple inbound nodes, hence the notion of \"layer input mask\" is ill-defined. Use `get_input_mask_at(node_index)` instead.");
                 return this.inbound_nodes[0].input_mask;
@@ -892,10 +817,8 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>Output mask tensor (potentially null) or list of output mask tensors.</returns>
         /// 
-        public List<Tensor> output_mask
-        {
-            get
-            {
+        public List<Tensor> output_mask {
+            get {
                 if (this.inbound_nodes.Count != 1)
                     throw new Exception($"Layer {this.name} has multiple inbound nodes, hence the notion of \"layer output mask\" is ill-defined. Use `get_output_mask_at(node_index)` instead.");
                 return this.inbound_nodes[0].output_mask;
@@ -912,10 +835,8 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>Input shape tuple (or list of input shape tuples, one tuple per input tensor).</returns>
         /// 
-        public List<int?[]> input_shape
-        {
-            get
-            {
+        public List<int?[]> input_shape {
+            get {
                 if (this.inbound_nodes.Count == 0)
                     throw new Exception("The layer has never been called and thus has no defined input shape.");
 
@@ -941,10 +862,8 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <returns>Output shape tuple (or list of input shape tuples, one tuple per output tensor).</returns>
         /// 
-        public List<int?[]> output_shape
-        {
-            get
-            {
+        public List<int?[]> output_shape {
+            get {
                 if (this.inbound_nodes.Count == 0)
                     throw new Exception("The layer has never been called and thus has no defined output shape.");
 
@@ -967,26 +886,21 @@ namespace KerasSharp.Engine.Topology
         /// 
         /// <remarks>The loss may potentially be conditional on some inputs tensors, for instance activity losses are conditional on the layer"s inputs.</remarks>
         /// 
-        public void add_loss(List<Tensor> losses, List<Tensor> inputs = null)
-        {
+        public void add_loss(List<Tensor> losses, List<Tensor> inputs = null) {
             if (losses == null || losses.Count == 0)
                 return;
 
             // Update this.losses
-            if (this._losses != null)
-            {
+            if (this._losses != null) {
                 this._losses.AddRange(losses);
 
                 // Update this._per_input_updates
                 if (inputs != null && inputs.Count == 0)
                     inputs = null;
                 string inputs_hash;
-                if (inputs != null)
-                {
+                if (inputs != null) {
                     inputs_hash = _object_list_uid(inputs);
-                }
-                else
-                {
+                } else {
                     // Updates indexed by null are unconditional
                     // rather than input-dependent
                     inputs_hash = null;
@@ -998,8 +912,7 @@ namespace KerasSharp.Engine.Topology
             }
         }
 
-        private string _object_list_uid(Tensor[] inputs)
-        {
+        private string _object_list_uid(Tensor[] inputs) {
             throw new NotImplementedException();
         }
 
@@ -1015,8 +928,7 @@ namespace KerasSharp.Engine.Topology
         /// <param name="inputs">Input tensor or list of inputs tensors to mark the updates as 
         ///   conditional on these inputs. If null is passed, the updates are assumed unconditional.</param>
         /// 
-        public void add_update(List<List<Tensor>> updates, List<Tensor> inputs = null)
-        {
+        public void add_update(List<List<Tensor>> updates, List<Tensor> inputs = null) {
             if (updates == null || updates.Count == 0)
                 return;
 
@@ -1029,12 +941,9 @@ namespace KerasSharp.Engine.Topology
                 inputs = null;
 
             string inputs_hash;
-            if (inputs != null)
-            {
+            if (inputs != null) {
                 inputs_hash = _object_list_uid(inputs);
-            }
-            else
-            {
+            } else {
                 // Updates indexed by null are unconditional
                 // rather than input-dependent
                 inputs_hash = null;
@@ -1045,14 +954,12 @@ namespace KerasSharp.Engine.Topology
             this._per_input_updates[inputs_hash].AddRange(updates);
         }
 
-        private string _object_list_uid(List<Tensor> inputs)
-        {
+        private string _object_list_uid(List<Tensor> inputs) {
             // https://github.com/fchollet/keras/blob/f65a56fb65062c8d14d215c9f4b1015b97cc5bf3/keras/engine/topology.py#L2706
             return String.Join(", ", inputs.Select(x => str(id(x))));
         }
 
-        public virtual List<List<Tensor>> get_updates_for(List<Tensor> inputs)
-        {
+        public virtual List<List<Tensor>> get_updates_for(List<Tensor> inputs) {
             string inputs_hash;
             if (inputs != null)
                 inputs_hash = _object_list_uid(inputs);
@@ -1065,8 +972,7 @@ namespace KerasSharp.Engine.Topology
         }
 
 
-        public virtual List<Tensor> get_losses_for(List<Tensor> inputs)
-        {
+        public virtual List<Tensor> get_losses_for(List<Tensor> inputs) {
             string inputs_hash = String.Empty;
             if (inputs != null)
                 inputs_hash = _object_list_uid(inputs);
@@ -1083,8 +989,7 @@ namespace KerasSharp.Engine.Topology
         ///   Weights values as a list of numpy arrays.
         /// </returns>
         /// 
-        public virtual List<Tensor> weights
-        {
+        public virtual List<Tensor> weights {
             get { return this.trainable_weights.Concat(this.non_trainable_weights).ToList(); }
         }
 
@@ -1096,8 +1001,7 @@ namespace KerasSharp.Engine.Topology
         ///   A list of Numpy arrays. The number of arrays and their shape must match the number of the dimensions of the weights of the layer (i.e.it should match the output of `get_weights`).
         /// </param>
         /// 
-        public virtual void set_weights(List<Array> value)
-        {
+        public virtual void set_weights(List<Array> value) {
             if (this.weights.Count != value.Count)
                 throw new Exception($"You called `set_weights(weights)` on layer {this.name} with a  weight list of length {value.Count}, but the layer was expecting {this.weights.Count} weights. Provided weights: { value }");
 
@@ -1108,8 +1012,7 @@ namespace KerasSharp.Engine.Topology
 
             List<Array> param_values = K.batch_get_value(this.weights);
 
-            for (int i = 0; i < param_values.Count; i++)
-            {
+            for (int i = 0; i < param_values.Count; i++) {
                 Array pv = param_values[i];
                 Tensor p = this.weights[i];
                 Array w = value[i];
@@ -1121,8 +1024,7 @@ namespace KerasSharp.Engine.Topology
             K.batch_set_value(weight_value_tuples);
         }
 
-        public override string ToString()
-        {
+        public override string ToString() {
             return $"{this.name} ({str(this.input_shape)} -> {str(this.output_shape)})";
         }
     }

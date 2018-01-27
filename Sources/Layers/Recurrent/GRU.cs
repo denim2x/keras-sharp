@@ -25,59 +25,105 @@
 //
 
 namespace KerasSharp {
-  using System;
-  using System.Collections.Generic;
-  using System.Linq;
-  using System.Text;
-  using System.Threading.Tasks;
+    using System.Runtime.Serialization;
+    using KerasSharp.Constraints;
+    using KerasSharp.Regularizers;
+    using KerasSharp.Initializers;
+    using Accord.Math;
+    using KerasSharp.Engine.Topology;
+    using KerasSharp.Activations;
 
-  using System.Runtime.Serialization;
-  using KerasSharp.Constraints;
-  using KerasSharp.Regularizers;
-  using KerasSharp.Initializers;
-  using Accord.Math;
-  using KerasSharp.Engine.Topology;
-  using KerasSharp.Activations;
+    using static KerasSharp.Backends.Current;
+    using Activator = IActivationFunction;
+    using Initializer = Initializers.IWeightInitializer;
+    using Regularizer = Regularizers.IWeightRegularizer;
+    using Constraint = Constraints.IWeightConstraint;
 
-  using static KerasSharp.Backends.Current;
+    /// <summary>
+    /// Gated Recurrent Unit - Cho et al. 2014.
+    /// 
+    /// Based on https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py#L1378
+    /// </summary>
+    [DataContract]
+    public class GRU : RNN<GRUCell> {
+        public GRU() {
+            cell = new GRUCell();
+            activity_regularizer = null;
+        }
 
-  /// <summary>
-  /// Gated Recurrent Unit - Cho et al. 2014.
-  /// 
-  /// Based on https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py#L1378
-  /// </summary>
-  [DataContract]
-  public class GRU : RNN {
-    public GRU(
-      IActivationFunction activation = null,
-      IActivationFunction recurrent_activation = null,
-      bool use_bias = true, 
-      IWeightInitializer kernel_initializer = null,
-      IWeightInitializer recurrent_initializer = null,
-      IWeightInitializer bias_initializer = null,
-      IWeightRegularizer kernel_regularizer = null,
-      IWeightRegularizer recurrent_regularizer = null,
-      IWeightRegularizer bias_regularizer = null,
-      IWeightRegularizer activity_regularizer = null,
-      IWeightConstraint kernel_constraint = null,
-      IWeightConstraint recurrent_constraint = null,
-      IWeightConstraint bias_constraint = null,
-      double dropout = 0.0,
-      double recurrent_dropout,
-      bool return_sequences = false,
-      bool return_state = false,
-      bool go_backwards = false,
-      bool stateful = false,
-      bool unroll = false) 
-      :base()
-    {
-      if (activation == null) {
-        activation = new TanH();
-      }
-      if (recurrent_activation == null) {
-        recurrent_activation = new HardSigmoid();
-      }
+        public int units {
+            get => cell.units;
+            set => cell.units = value;
+        }
 
+        public Activator activation {
+            get => cell.activation;
+            set => cell.activation = value;
+        }
+
+        public Activator recurrent_activation {
+            get => cell.recurrent_activation;
+            set => cell.recurrent_activation = value;
+        }
+
+        public bool use_bias {
+            get => cell.use_bias;
+            set => cell.use_bias = value;
+        }
+
+        public Initializer kernel_initializer {
+            get => cell.kernel_initializer;
+            set => cell.kernel_initializer = value;
+        }
+
+        public Initializer recurrent_initializer {
+            get => cell.recurrent_initializer;
+            set => cell.recurrent_initializer = value;
+        }
+
+        public Initializer bias_initializer {
+            get => cell.bias_initializer;
+            set => cell.bias_initializer = value;
+        }
+
+        public Regularizer kernel_regularizer {
+            get => cell.kernel_regularizer;
+            set => cell.kernel_regularizer = value;
+        }
+
+        public Regularizer recurrent_regularizer {
+            get => cell.recurrent_regularizer;
+            set => cell.recurrent_regularizer = value;
+        }
+
+        public Regularizer bias_regularizer {
+            get => cell.bias_regularizer;
+            set => cell.bias_regularizer = value;
+        }
+
+        public Constraint kernel_constraint {
+            get => cell.kernel_constraint;
+            set => cell.kernel_constraint = value;
+        }
+
+        public Constraint recurrent_constraint {
+            get => cell.recurrent_constraint;
+            set => cell.recurrent_constraint = value;
+        }
+
+        public Constraint bias_constraint {
+            get => cell.bias_constraint;
+            set => cell.bias_constraint = value;
+        }
+
+        public double dropout {
+            get => cell.dropout;
+            set => cell.dropout = value;
+        }
+
+        public double recurrent_dropout {
+            get => cell.recurrent_dropout;
+            set => cell.recurrent_dropout = value;
+        }
     }
-  }
 }
